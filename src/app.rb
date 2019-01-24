@@ -9,12 +9,20 @@ class App
   
   def start
     @view = View::Ruby2dView.new(self)
-    Thread.new { init_timer }
+    timer_thread = Thread.new { init_timer }
     @view.start(@state)
+    # Esto es utilizado para esperar en el hilo principal de la vista
+    # la finalizacion del hilo secundario con el timer.
+    timer_thread.join
   end
 
   def init_timer
     loop do
+      if @state.game_finished
+        puts "Juego finalizado"
+        puts "Puntaje: #{@state.snake.positions.length}"
+        break
+      end
       @state = Actions::move_snake(@state)
       @view.render(@state)
       sleep 0.5
